@@ -1,0 +1,62 @@
+Here’s a list of all the components required for building your **Smart Bridge** project with Arduino UNO and servos:
+
+---
+
+### **Required Components**
+1. **Arduino UNO**  
+   - Acts as the controller for the servos and ultrasonic sensor.
+
+2. **Ultrasonic Sensor (HC-SR04)**  
+   - Measures the water level beneath the bridge.  
+   - Connections: **TRIG → Pin 7**, **ECHO → Pin 6**
+
+3. **Servos (x4)**  
+   - To adjust the height of the bridge.  
+   - Example: SG90, MG996R, or any compatible servo motor.  
+   - Connections: **Servo pins → Pins 9, 10, 11, 12**
+
+4. **Servo Power Supply**  
+   - External power supply (e.g., 5V 2A power adapter or a battery pack) for powering the servos.  
+   - Do not power the servos directly from the Arduino UNO, as it cannot provide sufficient current.
+
+5. **Power Distribution Board (Optional)**  
+   - If using multiple servos, a power distribution board can help manage the power connections efficiently.
+
+6. **Wires and Connectors**  
+   - Jumper wires (male-to-male, male-to-female) for connections.
+
+7. **Breadboard (Optional)**  
+   - Useful for connecting and testing components.
+
+8. **Power Supply for Arduino UNO**  
+   - USB cable or external power source (e.g., 9V battery or power adapter).
+
+9. **Mounting Hardware**  
+   - Materials to attach the servos to the bridge structure, such as brackets, screws, and double-sided tape.
+
+10. **Bridge Structure**  
+    - A lightweight model to simulate the bridge. You can use wood, plastic, or cardboard.
+
+11. **External Power Source for the Ultrasonic Sensor (Optional)**  
+    - If you notice instability in measurements, provide a separate 5V supply for the sensor.
+
+12. **Tools for Assembly**  
+    - Screwdrivers, hot glue gun, soldering iron (if required).
+
+---
+
+### **Circuit Diagram**
+- The servos connect to the Arduino UNO's PWM pins (9, 10, 11, 12) and an external power source.
+- The ultrasonic sensor connects to the UNO's digital pins (7 for TRIG, 6 for ECHO).
+- The Arduino UNO is powered through its USB port or an external source.
+
+---
+
+### **Power Management Tips**
+- Use a stable external power source for the servos (e.g., 6V battery pack or 5V 2A power supply).
+- Share a common ground between the Arduino UNO and the external servo power supply.
+- For long-term or high-power setups, consider using a voltage regulator module to step down voltage safely.
+
+---
+
+Let me know if you need help with assembly, wiring, or additional details!
