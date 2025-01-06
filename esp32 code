@@ -1,80 +1,105 @@
-#include <Servo.h>
+#include <WiFi.h>
+#include <ESP32Servo.h>
 
 // Servo objects
 Servo servo1, servo2, servo3, servo4;
 
 // Ultrasonic sensor pins
-#define TRIG_PIN 7
-#define ECHO_PIN 6
+#define TRIG_PIN 27
+#define ECHO_PIN 26
+
+// Wi-Fi credentials
+const char* ssid = "Your_SSID";
+const char* password = "Your_PASSWORD";
 
 // Target distance from water to bridge (in cm)
 const int targetDistance = 7;
 
-// Servo range and arm length
-const int minAngle = 0;      // Minimum servo angle
-const int maxAngle = 180;    // Maximum servo angle
-const float servoArmLength = 10.0; // Length of the servo arm in cm
+// Servo angle range
+const int minAngle = 0;
+const int maxAngle = 180;
+
+// Global variable to store water height
+int waterHeight = 0;
+
+// Wi-Fi Server
+WiFiServer server(80);
 
 void setup() {
-  // Initialize servo objects
-  servo1.attach(9);
-  servo2.attach(10);
-  servo3.attach(11);
-  servo4.attach(12);
+  // Initialize Serial Monitor
+  Serial.begin(115200);
+
+  // Attach servos
+  servo1.attach(12); // GPIO12
+  servo2.attach(13); // GPIO13
+  servo3.attach(14); // GPIO14
+  servo4.attach(15); // GPIO15
 
   // Initialize ultrasonic sensor pins
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
-  // Start serial monitor
-  Serial.begin(9600);
+  // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to Wi-Fi");
+  Serial.println(WiFi.localIP());
+
+  // Start the server
+  server.begin();
 }
 
 void loop() {
-  // Measure current water level
-  int waterLevel = measureDistance();
-  Serial.print("Water Level: ");
-  Serial.println(waterLevel);
+  // Measure water height
+  waterHeight = measureDistance();
+  Serial.print("Water Height: ");
+  Serial.println(waterHeight);
 
-  // Calculate and set servo angles
-  adjustServos(waterLevel);
+  // Calculate height adjustment and set servo angles
+  int heightAdjustment = targetDistance - waterHeight;
+  int targetAngle = map(heightAdjustment, -10, 10, minAngle, maxAngle);
+  targetAngle = constrain(targetAngle, minAngle, maxAngle);
 
-  delay(500); // Short delay for smooth operation
+  // Move all servos to the calculated angle
+  servo1.write(targetAngle);
+  servo2.write(targetAngle);
+  servo3.write(targetAngle);
+  servo4.write(targetAngle);
+
+  // Handle client requests for water height
+  WiFiClient client = server.available();
+  if (client) {
+    Serial.println("New Client Connected");
+    String request = client.readStringUntil('\r');
+    client.flush();
+
+    // Send HTTP response with water height
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.println();
+    client.print("<html><body><h1>Water Height: ");
+    client.print(waterHeight);
+    client.print(" cm</h1></body></html>");
+    delay(1);
+    Serial.println("Client Disconnected");
+  }
+
+  delay(500); // Delay for stability
 }
 
-// Function to measure water level using the ultrasonic sensor
+// Function to measure water height using the ultrasonic sensor
 int measureDistance() {
-  // Send a 10-microsecond pulse to TRIG
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
-  // Read ECHO pin and calculate distance
   long duration = pulseIn(ECHO_PIN, HIGH);
   int distance = duration * 0.034 / 2; // Convert to cm
   return distance;
-}
-
-// Function to adjust servo angles based on water level
-void adjustServos(int waterLevel) {
-  // Calculate the height difference
-  int heightDifference = targetDistance - waterLevel;
-
-  // Calculate the required servo angle
-  int targetAngle = map(heightDifference, -servoArmLength, servoArmLength, minAngle, maxAngle);
-
-  // Constrain the angle within servo range
-  targetAngle = constrain(targetAngle, minAngle, maxAngle);
-
-  // Print the target angle for debugging
-  Serial.print("Target Servo Angle: ");
-  Serial.println(targetAngle);
-
-  // Move all servos to the target angle
-  servo1.write(targetAngle);
-  servo2.write(targetAngle);
-  servo3.write(targetAngle);
-  servo4.write(targetAngle);
 }
